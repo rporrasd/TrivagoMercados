@@ -1,0 +1,38 @@
+name: Rastreador de Precios Diario
+
+on:
+  schedule:
+    # 6:00 AM hora Perú (UTC-5) equivale a las 11:00 AM en UTC (hora del servidor)
+    - cron: '0 11 * * *'
+  workflow_dispatch: # ¡Este comando te permite ejecutarlo manualmente con un botón!
+
+jobs:
+  ejecutar-robot:
+    runs-on: ubuntu-latest
+    
+    # Le damos permiso al robot para que guarde el archivo nuevo en tu repositorio
+    permissions:
+      contents: write 
+
+    steps:
+    - name: Clonar el código
+      uses: actions/checkout@v3
+
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar las librerías
+      run: pip install -r requirements.txt
+
+    - name: Ejecutar el robot
+      run: python TrivagoMercados.py
+
+    - name: Guardar el CSV con los precios de hoy
+      run: |
+        git config --global user.name 'Robot Trivago'
+        git config --global user.email 'robot@trivago.com'
+        git add resultados_ofertas.csv
+        git commit -m "Actualización diaria de precios" || echo "No hay cambios"
+        git push
